@@ -1,0 +1,174 @@
+package com;
+
+/*
+    Given an array of integers and a target value, you must determine which two integers' sum
+    equals the target and return a 2D array. Then merge the array into a single array with sorting (
+    ascending ) order, in the next step double the target value and find again the combination of
+    digits (can be multiple digits ) that are equal to the double targeted value and returned into a 2D
+    array.
+    Sample Input : [1, 3, 2, 2, -4, -6, -2, 8];
+    Target Value = 4,
+    Output: First Combination For “4” : [ [1,3],[2,2],[-4,8],[-6,2] ];
+    Merge Into a single Array : [-6,-4,1,2,2,2,3,8];
+    Second Combination For “8” : [ [ 1,3,2,2], [8,-4,2,2],....,[n,n,n,n] ]
+*  **/
+
+import java.io.*;
+import java.util.*;
+
+public class Unibit{
+    // This function will give the pair sum of the initial target, which take the initial array
+    public static int[][] firstCombination(int[] nums, int target){
+
+//        Storing all the possible pair in the map, with the given sum
+        Map<Integer, List<List<Integer>>> map = new HashMap<>();
+
+        // Checking for duplicates
+        Set<String> hs = new HashSet<>();
+        int[][] result = null;
+
+        // Performing the operations , to find the pair sum which is equal to the target, and store it in map
+        for (int i = 0; i < nums.length; i++) {
+            for (int j = i + 1; j < nums.length; j++) {
+                int sum = Math.abs(nums[i] + nums[j]);
+                List<Integer> pair = new ArrayList<>();
+                String s = nums[i] + "" + nums[j];
+
+                pair.add(nums[i]);
+                pair.add(nums[j]);
+
+                if (sum == target && !hs.contains(s)) {
+                    if (!map.containsKey(sum)) {
+                        map.put(sum, new ArrayList<>());
+                    }
+                    map.get(sum).add(pair);
+                }
+                hs.add(s);
+            }
+        }
+
+        // now exactrating from the map, into 2D array.
+        if (map.containsKey(target)) {
+            List<List<Integer>> combinations = map.get(target);
+            result = new int[combinations.size()][2];
+            for (int i = 0; i < combinations.size(); i++) {
+                List<Integer> pair = combinations.get(i);
+                result[i][0] = pair.get(0);
+                result[i][1] = pair.get(1);
+            }
+        }
+
+        return result;
+
+
+    }
+
+    // function which is used to convert the pair sum 2D array into sorted 1D array
+    public static int[] mergeAndSort(int[][] nums){
+        // taking the length and breath of the 2D array
+        int m = nums.length;
+        int n = nums[0].length;
+        int[] res = new int[m*n];
+
+        // assigning the 2d array into 1D array
+        int ind = 0;
+        for(int [] arr : nums){
+            for(int val : arr){
+                res[ind++] = val;
+            }
+        }
+        // Sorting the 1D array and returing
+        Arrays.sort(res);
+        return res;
+    }
+
+    // this function will give the combination of digit which will be equal to the 2*initialTarget
+    // For this I have used recursion, so that I can get all the combinations
+    // In Question statement it was mentioned that we have to find the combinations of the digit which is
+    // eqaul to the double the target. i.e 2*target.
+
+
+    public static int[][] doubleCombination(int[] nums, int target) {
+        // Calling the backtrack function which will give all the unique combination which sum == 2*target
+        List<List<Integer>> al = new ArrayList<>();
+        backtrack(nums, target, 0, new ArrayList<>(), al);
+
+        // Comverting the List<List<Integer>> to 2D array and then returning
+        int[][] res = new int[al.size()][0];
+        for(int i = 0; i<al.size() ; i++){
+            int size = al.get(i).size();
+            res[i] = new int[size];
+            for(int j = 0; j< size ; j++){
+                res[i][j] = al.get(i).get(j);
+            }
+        }
+
+        return res;
+
+    }
+    private static void backtrack(int[] nums, int target, int start, List<Integer> combination, List<List<Integer>> result) {
+        // Base case
+        if (target == 0) {
+            result.add(new ArrayList<>(combination));
+            return;
+        }
+
+        if (target < 0) {
+            return;
+        }
+        // checking all the cases
+        for (int i = start; i < nums.length; i++) {
+            // Skip duplicates
+            if (i > start && nums[i] == nums[i - 1]) {
+                continue;
+            }
+            combination.add(nums[i]);
+            backtrack(nums, target - nums[i], i+1, combination, result);
+            combination.remove(combination.size() - 1);
+        }
+    }
+
+    // Main funciton
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the length of the array : ");
+        int n = sc.nextInt();
+        System.out.println("Enter the elements of the array");
+        int[] arr = new int[n];
+        for(int i = 0; i<n ; i++){
+            arr[i] = sc.nextInt();
+        }
+
+        System.out.println("Enter the target");
+        int target = sc.nextInt();
+
+//        Calling first time which will give the result in 2D array , of pair sum which is equal to target
+        int[][] pairCombination = firstCombination(arr, target);
+//        Printing the 2D array with pair sum equal to target
+        System.out.println("First Combination For " + target);
+        for(int[] ar : pairCombination){
+            System.out.println(Arrays.toString(ar));
+        }
+
+//        Now merging the 2D array with the pair sum equal to target, in single array
+        int[] mergeArray = mergeAndSort(pairCombination);
+
+//        Printing the converted 1d array , which was initially 2D array with the pair sum equal to target value
+        System.out.println("Conveted the 2d array into 1d array");
+
+        System.out.println(Arrays.toString(mergeArray));
+
+//        Now we have to double the target and print all the possible numbers which sum equal to doubt the target.
+        int[][] doubtTargetCombination = doubleCombination(mergeArray, target*2);
+//        Printing the sum combination of doubt the target
+
+
+        System.out.println("Second Combination For  " + 2*target );
+        for(int[] ar : doubtTargetCombination){
+            System.out.println(Arrays.toString(ar));
+//            System.out.println();
+        }
+
+
+    }
+}
